@@ -21,6 +21,7 @@ from nemo.collections.nlp.parts.megatron_trainer_builder import MegatronTrainerB
 from nemo.core.config import hydra_runner
 from nemo.utils import logging
 from nemo.utils.exp_manager import exp_manager
+from nemo.lightning.base import teardown
 
 mp.set_start_method("spawn", force=True)
 
@@ -35,7 +36,10 @@ def main(cfg) -> None:
 
     model = MegatronNevaModel(cfg.model, trainer)
 
-    trainer.fit(model)
+    try:
+        trainer.fit(model)
+    finally:
+        teardown(trainer)
 
 
 if __name__ == '__main__':
