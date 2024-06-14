@@ -38,15 +38,11 @@ mdl.init_vision(
     class_token_length,
     use_im_start_end,
 )
-#mdl.to(device='cuda', dtype=torch.float)
 mdl.add_adapter(
     "mm_projector_adapter",
     cfg=MultimodalProjectorAdapterConfig("linear", in_features=1024, out_features=5120,
                                bias=False)
 )
-#for param in mdl.parameters():
-#    param.to(device='cuda', dtype=torch.float)
-#mdl.set_enabled_adapters(name="mm_projector_adapter", enabled=True)
 
 input_ids = torch.empty((2, 384), device='cuda:0', dtype=torch.float)
 media = torch.empty((2,1,1,3,224,224), device='cuda:0', dtype=torch.float)
@@ -58,7 +54,8 @@ try:
     mdl.forward(input_ids)
     input_ids = torch.empty((2, 384), device='cuda:0', dtype=torch.float)
 except:
-    print("code failed even without thunder")
+    print("code failed even without thunder:")
+    raise
     import sys
     sys.exit(1)
 
