@@ -13,9 +13,12 @@
 # limitations under the License.
 from contextlib import contextmanager
 
+import os
 import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
+
+import thunder
 
 try:
     from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
@@ -327,6 +330,11 @@ class AutoencoderKL(pl.LightningModule):
         assert ddconfig["double_z"]
         self.quant_conv = torch.nn.Conv2d(2 * ddconfig["z_channels"], 2 * embed_dim, 1)
         self.post_quant_conv = torch.nn.Conv2d(embed_dim, ddconfig["z_channels"], 1)
+
+        use_thunder = os.getenv("NEMO_THUNDER_AUTOENCODER")
+        if use_thunder is not None and int(use_thunder) > 0:
+            self.encoder = thunder.jit(self.encoder)
+
         self.embed_dim = embed_dim
         if colorize_nlabels is not None:
             assert type(colorize_nlabels) == int
