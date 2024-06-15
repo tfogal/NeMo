@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable, Dict, Literal, Optional
+import os
 
 import pytorch_lightning as L
 import torch
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
     from megatron.core.models.gpt.gpt_model import GPTModel as MCoreGPTModel
 
     from nemo.collections.common.tokenizers.tokenizer_spec import TokenizerSpec
+import thunder
 
 
 @dataclass
@@ -78,6 +80,10 @@ class GPTModel(L.LightningModule, io.IOMixin, io.ConnectorMixin):
 
     def configure_model(self) -> None:
         self.module = self.config.configure_model(self.tokenizer)
+        thndr = os.getenv("NEMO_THUNDER_GPT")
+        if thndr is not None and int(thndr) != 0:
+            print("Using Thunder GPT...")
+            self.module = thunder.jit(self.module)
 
     def configure_optimizers(self) -> Optimizer:
         if self.config.optimizer_fn is not None:
