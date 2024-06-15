@@ -21,6 +21,7 @@ import numpy as np
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
+import thunder
 from einops import rearrange, repeat
 from lightning_fabric.utilities.cloud_io import _load as pl_load
 from omegaconf import DictConfig, open_dict
@@ -2314,6 +2315,9 @@ class DiffusionWrapper(pl.LightningModule, Serialization):
     ):
         super().__init__()
         self.diffusion_model = DiffusionWrapper.from_config_dict(diff_model_config)
+        use_thunder = os.getenv("NEMO_THUNDER_DIFFUSION")
+        if use_thunder is not None and int(use_thunder) > 0:
+            self.diffusion_model = thunder.jit(self.diffusion_model)
         self.conditioning_key = conditioning_key
         assert self.conditioning_key in [None, 'concat', 'crossattn', 'hybrid', 'adm']
 
