@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 
 
 import torch.multiprocessing as mp
@@ -22,6 +23,7 @@ from nemo.core.config import hydra_runner
 from nemo.utils import logging
 from nemo.utils.exp_manager import exp_manager
 from nemo.lightning.base import teardown
+import thunder
 
 mp.set_start_method("spawn", force=True)
 
@@ -35,6 +37,9 @@ def main(cfg) -> None:
     exp_manager(trainer, cfg.exp_manager)
 
     model = MegatronNevaModel(cfg.model, trainer)
+    use_thunder = os.getenv("NEMO_THUNDER_NEVA")
+    if use_thunder is not None and int(use_thunder) > 0:
+        model.model = thunder.jit(model.model)
 
     try:
         trainer.fit(model)
