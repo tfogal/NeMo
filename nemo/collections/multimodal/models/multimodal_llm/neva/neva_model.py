@@ -441,10 +441,13 @@ class NevaModel(GPTModel, NevaBaseModel):
     def forward(
         self, *args, **kwargs,
     ):
+        torch.cuda.nvtx.range_push("neva fwd")
         media = kwargs.pop('media', None)
         if parallel_state.is_pipeline_first_stage(ignore_virtual=True):
             self.embedding.word_embeddings.set_media(media)
-        return GPTModel.forward(self, *args, **kwargs)
+        result = GPTModel.forward(self, *args, **kwargs)
+        torch.cuda.nvtx.range_pop()
+        return result
 
 
 class MegatronNevaModel(MultimodalAdapterModelMixin, MegatronGPTModel):
@@ -710,7 +713,9 @@ class MegatronNevaModel(MultimodalAdapterModelMixin, MegatronGPTModel):
             The input batch to each micro-batch is fetched using the dataloader function
             in the micro-batch fwd function.
         """
-        return MegatronGPTModel.training_step(self, dataloader_iter)
+        torch.cuda.nvtx.range_push("mneva training_step")
+        result = MegatronGPTModel.training_step(self, dataloader_iter)
+        torch.cuda.nvtx.range_pop()
 
     def get_forward_output_and_loss_func(self, validation_step=False, tuning=False):
         def loss_func(output_tensor, loss_mask):
