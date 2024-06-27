@@ -85,8 +85,6 @@ except (ImportError, ModuleNotFoundError):
 
     HAVE_MEGATRON_CORE = False
 
-import thunder
-
 
 class FrozenCLIPVisionTransformer(CLIPVisionTransformer):
     """Frozen version of CLIPVisionTransformer"""
@@ -154,13 +152,7 @@ class NevaWordEmbeddingMixin(torch.nn.Module, adapter_mixins.AdapterModuleMixin)
         media = self.media  # avoid change the signature of embedding forward function
         words_embeddings = super().forward(input_ids, **kwargs)
 
-        jitted = self.replace_media_embeddings
-        enable_thunder = os.getenv("NEMO_THUNDER_WORD_EMBEDDING")
-        if enable_thunder is not None and int(enable_thunder) != 0:
-            # creates TypeError: thunder issue #601
-            print("thunder.jit'ing replace_media_embeddings")
-            jitted = thunder.jit(self.replace_media_embeddings)
-        return jitted(input_ids, words_embeddings, media)
+        return self.replace_media_embeddings(input_ids, words_embeddings, media)
 
     def encode_vision_x(self, vision_x: torch.Tensor):
         """
