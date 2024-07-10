@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import torch.multiprocessing as mp
 from omegaconf.omegaconf import OmegaConf
 
@@ -22,6 +23,8 @@ from nemo.collections.nlp.parts.peft_config import PEFT_CONFIG_MAP
 from nemo.core.config import hydra_runner
 from nemo.utils import logging
 from nemo.utils.exp_manager import exp_manager
+
+import thunder
 
 mp.set_start_method("spawn", force=True)
 
@@ -62,6 +65,10 @@ def main(cfg) -> None:
     model_cfg = MegatronGPTSFTModel.merge_cfg_with(cfg.model.restore_from_path, cfg)
     model = MegatronGPTSFTModel.restore_from(cfg.model.restore_from_path, model_cfg, trainer=trainer)
     peft_cfg_cls = PEFT_CONFIG_MAP[cfg.model.peft.peft_scheme]
+    enable_thunder = os.getenv("NEMO_THUNDER_MEGATRON_GPT")
+    if enable_thunder is not None and int(enable_thunder) > 0:
+      print("Enabling thunder for Megatron GPT")
+      model.model = thunder.jit(model.model)
 
     if cfg.model.peft.restore_from_path is not None:
         # initialize peft weights from a checkpoint instead of randomly
