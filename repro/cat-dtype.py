@@ -3,9 +3,7 @@ import torch
 import thunder
 import einops
 
-def foo(input_ids, inputs_embeds, ct):
-  assert len(inputs_embeds.shape) == 3
-
+def foo(input_ids, inputs_embeds):
   batch_size, sequence_length, hidden_size = inputs_embeds.shape
 
   media_features = torch.randn((2,1,1,256,5120), dtype=torch.float16)
@@ -30,6 +28,8 @@ def foo(input_ids, inputs_embeds, ct):
   padded_media_indices = einops.repeat(padded_media_indices, 'b s -> b s h', h=hidden_size)
 
   second = torch.zeros((batch_size, num_patches, hidden_size), device=inputs_embeds.device)
+  # Note: thunder can be made to work by explicitly setting the dtype:
+  #   second = torch.zeros((batch_size, num_patches, hidden_size), dtype=torch.float32, device=inputs_embeds.device)
   #print(f"ii dt:shape={inputs_embeds.dtype}:{inputs_embeds.shape}")
   #print(f"2nd dt:shape={second.dtype}:{second.shape}")
   updated_input_embeds = torch.cat(
@@ -41,7 +41,7 @@ at = torch.zeros((2,384), dtype=torch.int64)
 bt = torch.randn((2,384, 5120), dtype=torch.float32)
 ct = torch.randn((2,1,1,3,224,224), dtype=torch.float32)
 
-foo(at, bt, ct)
+foo(at, bt)
 
 thfoo = thunder.jit(foo)
-thfoo(at, bt, ct)
+thfoo(at, bt)
