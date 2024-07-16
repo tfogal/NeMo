@@ -201,7 +201,9 @@ class NevaWordEmbeddingMixin(torch.nn.Module, adapter_mixins.AdapterModuleMixin)
         # create an indices matrix used in torch.scatter {
         sorted_media_end_positions_mask, media_end_positions_mask_sort_idx = (
             # NOTE: to(torch.long) is needed because PyTorch does not have sort for boolean tensors on CUDA
-            (input_ids == self.media_end_id).to(torch.long).sort(dim=-1, descending=True, stable=True)
+            (input_ids == self.media_end_id)
+            .to(torch.long)
+            .sort(dim=-1, descending=True, stable=True)
         )
         # TODO: unless `media_end_positions_mask_sort_idx` is required to be sorted,
         # we can replace sort with topk(..., k=num_images_per_sample)
@@ -213,14 +215,15 @@ class NevaWordEmbeddingMixin(torch.nn.Module, adapter_mixins.AdapterModuleMixin)
             padded_media_indices = torch.where(
                 sorted_media_end_positions_mask.to(torch.bool),
                 media_end_positions_mask_sort_idx - num_patches,
-                sequence_length
+                sequence_length,
             )
         else:
             padded_media_indices = torch.where(
                 sorted_media_end_positions_mask.to(torch.bool),
                 media_end_positions_mask_sort_idx - num_patches + 1,
-                sequence_length
+                sequence_length,
             )
+
         # Check whether `padded_media_indices` represents correct indices
         # This check is only run when the env var `NEMO_TESTING` is set
         def check_padded_media_indices():
