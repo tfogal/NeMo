@@ -16,7 +16,6 @@ import os
 from functools import partial
 from itertools import chain
 from typing import Any, Optional
-from collections.abc import Callable
 
 import torch
 import torch.nn.functional as F
@@ -63,9 +62,7 @@ from nemo.collections.nlp.parts.utils_funcs import get_last_rank
 from nemo.collections.vision.data.megatron.data_samplers import MegatronVisionPretrainingRandomSampler
 from nemo.core import adapter_mixins
 from nemo.core.classes.common import PretrainedModelInfo
-from nemo.utils import logging
-from nemo.constants import NEMO_ENV_VARNAME_TESTING
-from nemo.utils.env_var_parsing import get_envbool
+from nemo.utils import logging, run_if_testing
 
 try:
     import apex.transformer.pipeline_parallel.utils
@@ -87,15 +84,6 @@ try:
 except (ImportError, ModuleNotFoundError):
 
     HAVE_MEGATRON_CORE = False
-
-
-def run_if_testing(f: Callable):
-    """Helper function that invokes the input callable `f`
-    if the environment variable `NEMO_TESTING` is set.
-    """
-
-    if get_envbool(NEMO_ENV_VARNAME_TESTING):
-        f()
 
 
 class FrozenCLIPVisionTransformer(CLIPVisionTransformer):
