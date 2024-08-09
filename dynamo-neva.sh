@@ -1,6 +1,7 @@
 #!/bin/sh
 
 TMPDIR=./foo-neva-train
+profile="/tmp/neva-a100-dyn-thunder.nsys-rep"
 rm -fr ${TMPDIR}
 
 source ~/env/bin/activate
@@ -9,7 +10,7 @@ source ~/env/bin/activate
 #  --trace=cuda,nvtx,cublas,osrt,cudnn \
 #nsys profile \
 #  --force-overwrite=true \
-#  --output=/tmp/neva-a100-thunder.nsys-rep \
+#  --output=${profile} \
 #  --opengl-gpu-workload=false \
 #  --stats=false \
 #  --show-output=true \
@@ -52,4 +53,6 @@ python3 \
          exp_manager.exp_dir=${TMPDIR}
 
 rm -fr ${TMPDIR}
-#cp /tmp/neva-a100-thunder.nsys-rep ~/share/
+if test -f ${profile} ; then
+  cp ${profile} ~/share/
+fi
