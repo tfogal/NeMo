@@ -3,7 +3,7 @@
 TMPDIR=./foo-neva-train
 rm -fr ${TMPDIR}
 
-source ~/env/bin/activate
+#source ~/env/bin/activate
 #
 #  --trace=cuda,nvtx,cublas,cudnn \
 #  --trace=cuda,nvtx,cublas,osrt,cudnn \
@@ -18,20 +18,20 @@ source ~/env/bin/activate
 
 HYDRA_FULL_ERROR=1 \
 THUNDER_ANNOTATE_TRACES=1 \
-NEMO_THUNDER_NEVA=thunder \
+NEMO_THUNDER_NEVA=inductor \
 python3 \
 	./examples/multimodal/multimodal_llm/neva/neva_pretrain.py \
          trainer.precision=16 \
          model.megatron_amp_O2=False \
          trainer.num_nodes=1 \
          trainer.devices=1 \
-         trainer.val_check_interval=10 \
+         trainer.val_check_interval=200 \
          trainer.limit_val_batches=5 \
          trainer.log_every_n_steps=1 \
          ++exp_manager.max_time_per_run=00:00:03:00 \
-         trainer.max_steps=20 \
+         trainer.max_steps=50 \
          model.micro_batch_size=2 \
-         model.global_batch_size=4 \
+         model.global_batch_size=2 \
          model.tensor_model_parallel_size=1 \
          model.pipeline_model_parallel_size=1 \
          exp_manager.create_checkpoint_callback=False \
@@ -49,6 +49,8 @@ python3 \
          model.mm_cfg.vision_encoder.from_pretrained='openai/clip-vit-large-patch14' \
          model.mm_cfg.llm.from_pretrained=null \
          model.use_flash_attention=false \
+         model.nsys_profile.enabled=True \
+         model.nsys_profile.gen_shape=True \
          exp_manager.exp_dir=${TMPDIR}
 
 rm -fr ${TMPDIR}
