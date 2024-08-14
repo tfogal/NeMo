@@ -1,6 +1,7 @@
 #!/bin/sh
 
 TMPDIR=./foo-neva-train
+profile="/tmp/neva-a100-dyn-thunder.nsys-rep"
 rm -fr ${TMPDIR}
 
 #source ~/env/bin/activate
@@ -9,7 +10,7 @@ rm -fr ${TMPDIR}
 #  --trace=cuda,nvtx,cublas,osrt,cudnn \
 #nsys profile \
 #  --force-overwrite=true \
-#  --output=/tmp/neva-a100-thunder.nsys-rep \
+#  --output=${profile} \
 #  --opengl-gpu-workload=false \
 #  --stats=false \
 #  --show-output=true \
@@ -17,13 +18,14 @@ rm -fr ${TMPDIR}
 #
 # nsys profile -w true -t cublas,cuda,nvtx,osrt -s cpu -c cudaProfilerApi -o dynamo_thunder_neva \
 
+rm -f /tmp/graph*.log.txt
 HYDRA_FULL_ERROR=1 \
 THUNDER_ANNOTATE_TRACES=1 \
 NEMO_THUNDER_NEVA=dynamo \
 python3 \
 	./examples/multimodal/multimodal_llm/neva/neva_pretrain.py \
-         trainer.precision=16 \
-         model.megatron_amp_O2=False \
+         trainer.precision=bf16-mixed \
+         model.megatron_amp_O2=True \
          trainer.num_nodes=1 \
          trainer.devices=1 \
          trainer.val_check_interval=100 \
@@ -50,9 +52,12 @@ python3 \
          model.mm_cfg.vision_encoder.from_pretrained='openai/clip-vit-large-patch14' \
          model.mm_cfg.llm.from_pretrained=null \
          model.use_flash_attention=false \
-         model.nsys_profile.enabled=True \
-         model.nsys_profile.gen_shape=True \
          exp_manager.exp_dir=${TMPDIR}
 
+# model.nsys_profile.enabled=True \
+#          model.nsys_profile.gen_shape=True \
+
 rm -fr ${TMPDIR}
-#cp /tmp/neva-a100-thunder.nsys-rep ~/share/
+if test -f ${profile} ; then
+  cp ${profile} ~/share/
+fi
