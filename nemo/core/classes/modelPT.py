@@ -1737,6 +1737,8 @@ class ModelPT(LightningModule, Model):
                 self._nsys_profile_enabled = True
                 self._nsys_profile_start_step = self.cfg.nsys_profile.get('start_step', 0)
                 self._nsys_profile_end_step = self.cfg.nsys_profile.get('end_step', 0)
+                # self._nsys_profile_start_step = 19
+                # self._nsys_profile_end_step = 21
                 self._nsys_profile_ranks = self.cfg.nsys_profile.get('ranks', [0])
                 self._nsys_profile_gen_shape = self.cfg.nsys_profile.get('gen_shape', False)
 
@@ -1817,6 +1819,8 @@ class ModelPT(LightningModule, Model):
 
         # nsys profiling
         if self.device.type == 'cuda':
+            # import pdb; pdb.set_trace()
+            print(f"start: {batch_idx}")
             if hasattr(self, '_nsys_profile_enabled'):
                 if self._nsys_profile_enabled and not self._nsys_profile_started:
                     if batch_idx >= self._nsys_profile_start_step and get_rank() in self._nsys_profile_ranks:
@@ -1862,6 +1866,7 @@ class ModelPT(LightningModule, Model):
         """
 
         if self.device.type == 'cuda':
+            print(f"end: {batch_idx}")
             if hasattr(self, '_nsys_profile_enabled'):
                 if self._nsys_profile_enabled and not self._nsys_profile_complete:
                     if batch_idx >= self._nsys_profile_end_step and get_rank() in self._nsys_profile_ranks:
