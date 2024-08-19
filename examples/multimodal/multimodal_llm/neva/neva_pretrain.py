@@ -133,7 +133,7 @@ def main(cfg) -> None:
         # # for k, v in bwd_trace.python_ctx().items():
         # #     if 'nvFusion' in k:
         # #         print(v.last_used)
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         teardown(trainer)
         global num_graphs
         global thunder_graphs
