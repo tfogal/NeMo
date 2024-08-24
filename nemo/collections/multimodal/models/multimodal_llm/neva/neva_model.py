@@ -471,7 +471,9 @@ class NevaModel(GPTModel, NevaBaseModel):
         media = kwargs.pop('media', None)
         if parallel_state.is_pipeline_first_stage(ignore_virtual=True):
             self.embedding.word_embeddings.set_media(media)
+        torch.cuda.nvtx.range_push("LLM Model")
         result = GPTModel.forward(self, *args, **kwargs)
+        torch.cuda.nvtx.range_pop()
         torch.cuda.nvtx.range_pop()
         return result
 
