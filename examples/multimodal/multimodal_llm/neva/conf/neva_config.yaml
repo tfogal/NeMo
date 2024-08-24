@@ -198,7 +198,7 @@ model:
   nsys_profile:
     enabled: False
     start_step: 10  # Global batch to start profiling
-    end_step: 11 # Global batch to end profiling
+    end_step: 10 # Global batch to end profiling
     ranks: [ 0 ] # Global rank IDs to profile
     gen_shape: False # Generate model and kernel details including input shapes
 

@@ -57,7 +57,6 @@ def thunder_supported(gm: torch.fx.GraphModule) -> bool:
 
 num_graphs = 0
 thunder_graphs = 0
-thunder_graphs_list = []
 
 def thunder_backend(gm: torch.fx.GraphModule, args):
   gm.real_recompile()
@@ -66,15 +65,8 @@ def thunder_backend(gm: torch.fx.GraphModule, args):
   try:
     if thunder_supported(gm):
       global thunder_graphs
-      global thunder_graphs_list
       thunder_graphs = thunder_graphs + 1
-      # import pdb; pdb.set_trace()
-      x = thunder.jit(gm)
-      thunder_graphs_list.append(x)
-      # out = x(args)
-      # print(thunder.last_traces(x)[-1])
-      return x
-      # return thunder.jit(gm)
+      return thunder.jit(gm)
   except e:
     print("broke: {e}")
     print("because of input: {gm.graph}")
@@ -118,22 +110,6 @@ def main(cfg) -> None:
     try:
         trainer.fit(model)
     finally:
-        # Grab the execution traces
-        # fwd_trace = thunder.last_traces(model.model)[-1]
-        # bwd_trace = thunder.last_backward_traces(model.model)[-1]
-
-        # print("forward")
-        # print(fwd_trace)
-        # # for k, v in fwd_trace.python_ctx().items():
-        # #     if 'nvFusion' in k:
-        # #         print(v.last_used)
-            
-        # print("backward")
-        # print(bwd_trace)
-        # # for k, v in bwd_trace.python_ctx().items():
-        # #     if 'nvFusion' in k:
-        # #         print(v.last_used)
-        # import pdb; pdb.set_trace()
         teardown(trainer)
         global num_graphs
         global thunder_graphs
