@@ -96,6 +96,8 @@ def main(cfg) -> None:
     use_thunder: str = os.getenv("NEMO_THUNDER_NEVA")
     if use_thunder is not None and use_thunder.strip() == "thunder":
         model.model = thunder.jit(model.model)
+    elif use_thunder is not None and use_thunder.strip() == "inductor":
+        model.model = torch.compile(model.model)
     elif use_thunder is not None and use_thunder.strip() == "dynamo":
         # The dynamic=False is critical because we end up with SymInts
         # in the trace otherwise, and this ends up dying on us.

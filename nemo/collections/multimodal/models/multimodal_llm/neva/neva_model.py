@@ -189,10 +189,13 @@ class NevaWordEmbeddingMixin(torch.nn.Module, adapter_mixins.AdapterModuleMixin)
         if media is None:
             return inputs_embeds
 
+        torch.cuda.nvtx.range_push("Media embedding")
         batch_size, sequence_length, hidden_size = inputs_embeds.shape
 
         # calculate media features without gradients
+        torch.cuda.nvtx.range_push("Vision Encoder")
         media_features = self.encode_vision_x(media)  # b T F S(eq) H(idden)
+        torch.cuda.nvtx.range_pop()
         num_images_per_sample = media_features.size(1)
         num_patches = media_features.size(3) * media_features.size(2)
         # flatten patches
@@ -263,6 +266,7 @@ class NevaWordEmbeddingMixin(torch.nn.Module, adapter_mixins.AdapterModuleMixin)
         # chop off placeholder
         updated_input_embeds = updated_input_embeds[:, :sequence_length]
 
+        torch.cuda.nvtx.range_pop()
         return updated_input_embeds
 
 
@@ -467,7 +471,9 @@ class NevaModel(GPTModel, NevaBaseModel):
         media = kwargs.pop('media', None)
         if parallel_state.is_pipeline_first_stage(ignore_virtual=True):
             self.embedding.word_embeddings.set_media(media)
+        torch.cuda.nvtx.range_push("LLM Model")
         result = GPTModel.forward(self, *args, **kwargs)
+        torch.cuda.nvtx.range_pop()
         torch.cuda.nvtx.range_pop()
         return result
 
