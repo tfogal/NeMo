@@ -30,7 +30,7 @@ THUNDER_ANNOTATE_TRACES=1 \
 NEMO_THUNDER_NEVA=dynamo \
 python3 \
 	./examples/multimodal/multimodal_llm/neva/neva_finetune.py \
-         --config-path=/scratch/thunder_neva/tfogal_nemo_neva \
+         --config-path=. \
          --config-name=llama3_8b_chat.yaml \
          exp_manager.create_wandb_logger=False \
          trainer.precision=bf16-mixed \
