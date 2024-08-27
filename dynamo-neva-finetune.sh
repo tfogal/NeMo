@@ -3,7 +3,7 @@
 # nvidia-smi | grep 'python' | awk '{ print $5 }' | xargs -n1 kill -9
 
 TMPDIR=./foo-neva-train
-# profile="/tmp/neva-a100-dyn-thunder.nsys-rep"
+profile="/tmp/neva-a100-dyn-thunder.nsys-rep"
 rm -fr ${TMPDIR}
 
 #source ~/env/bin/activate
