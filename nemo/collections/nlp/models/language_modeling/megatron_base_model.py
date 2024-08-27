@@ -418,6 +418,12 @@ class MegatronBaseModel(NLPModel):
             legacy = self._cfg.tokenizer.sentencepiece_legacy
         else:
             legacy = True if self._cfg.tokenizer.library == 'sentencepiece' else False
+        # tjf -- add an error message that says what is going on.
+        if not os.path.exists(self._cfg.tokenizer.get('model')):
+            print(self._cfg.tokenizer.get('model'), "does not exist!")
+            print(f"(CWD is {os.getcwd()})")
+            import sys
+            sys.exit(42)
         self.tokenizer = get_nmt_tokenizer(
             library=self._cfg.tokenizer.library,
             model_name=self._cfg.tokenizer.type,
