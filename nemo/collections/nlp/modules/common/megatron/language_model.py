@@ -758,6 +758,7 @@ class TransformerLanguageModel(MegatronModule, adapter_mixins.AdapterModuleMixin
         inference_max_sequence_len=None,
         checkpoint_activations_all_layers=None,
     ):
+        torch.cuda.nvtx.range_push("nemo XFrmLLM embedding")
         # Embeddings.
         if self.pre_process and encoder_input is None:
 
@@ -776,6 +777,7 @@ class TransformerLanguageModel(MegatronModule, adapter_mixins.AdapterModuleMixin
                     encoder_input = torch.concat([virtual_embeddings, encoder_input], dim=0)
         else:
             pass
+        torch.cuda.nvtx.range_pop()
 
         # enc_attn_mask: [1, 1, s, s]
         if inference_max_sequence_len is not None:
