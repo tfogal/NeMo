@@ -851,6 +851,7 @@ class CoreAttention(MegatronModule):
         headscale_tensor=None,
         inference_mode=None,
     ):
+        torch.cuda.nvtx.range_push("nemo CoreAttention fwd")
         b, np, sq, sk, hn = (
             query_layer.size(1),
             query_layer.size(2),
@@ -921,6 +922,7 @@ class CoreAttention(MegatronModule):
         new_context_layer_shape = context_layer.size()[:-2] + (self.hidden_size_per_partition,)
         context_layer = context_layer.view(*new_context_layer_shape)
 
+        torch.cuda.nvtx.range_pop()
         return context_layer
 
     def torch_attention(self, query_layer, key_layer, value_layer, attention_mask, attention_bias, inference_mode):
