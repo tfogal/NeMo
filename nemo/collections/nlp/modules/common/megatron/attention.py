@@ -925,6 +925,8 @@ class CoreAttention(MegatronModule):
         torch.cuda.nvtx.range_pop()
         return context_layer
 
+    # tjf -- disabling this works around an inductor bug.
+    #@torch.compiler.disable
     def torch_attention(self, query_layer, key_layer, value_layer, attention_mask, attention_bias, inference_mode):
         sq, b, np, hn = query_layer.shape
         sk = key_layer.shape[0]
