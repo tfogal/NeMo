@@ -859,6 +859,7 @@ class TransformerLanguageModel(MegatronModule, adapter_mixins.AdapterModuleMixin
                 return encoder_output
 
         # Decoder Embedding
+        torch.cuda.nvtx.range_push("nemo XFrmLLM DecoderEmbd")
         dec_embedding_output = self.embedding(dec_input_ids, dec_position_ids)
         # decoder
         decoder_output = self.decoder(
@@ -872,6 +873,7 @@ class TransformerLanguageModel(MegatronModule, adapter_mixins.AdapterModuleMixin
             inference_max_sequence_len=inference_max_sequence_len,
             checkpoint_activations_all_layers=checkpoint_activations_all_layers,
         )
+        torch.cuda.nvtx.range_pop()
 
         if self.add_pooler and self.post_process:
             return decoder_output, encoder_output, pooled_output
