@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
 TMPDIR=./foo-neva-train
-profile="/tmp/neva-a100-eager.nsys-rep"
+profile="/tmp/neva-ampere-eager.nsys-rep"
 rm -fr ${TMPDIR}
 
 source ~/env/bin/activate
@@ -11,8 +11,10 @@ source ~/env/bin/activate
 #  --output=${profile} \
 #  --opengl-gpu-workload=false \
 #  --stats=false \
-#  --trace=cuda,nvtx,cublas,cudnn \
 #  --show-output=true \
+#  --python-sampling=true \
+#  --trace=cuda,nvtx,cublas,cudnn \
+#
 
 HYDRA_FULL_ERROR=1 \
 nsys profile \
@@ -21,6 +23,7 @@ nsys profile \
   --opengl-gpu-workload=false \
   --stats=false \
   --show-output=true \
+  --python-sampling=true \
   --trace=cuda,nvtx,cublas,cudnn \
 python3 \
   ./examples/multimodal/multimodal_llm/neva/neva_pretrain.py \

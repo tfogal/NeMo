@@ -1,12 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
 TMPDIR=./foo-neva-train
-profile="/tmp/neva-a100-dyn-thunder.nsys-rep"
+profile="/tmp/neva-ampere-dyn-thunder.nsys-rep"
 rm -fr ${TMPDIR}
 
 source ~/env/bin/activate
 #
-#  --trace=cuda,nvtx,cublas,cudnn \
+#python3 -m pyflame -p /home/tfogal/dev/carilli-fg/flamegraph.pl \
 #  --trace=cuda,nvtx,cublas,osrt,cudnn \
 #nsys profile \
 #  --force-overwrite=true \
@@ -14,12 +14,21 @@ source ~/env/bin/activate
 #  --opengl-gpu-workload=false \
 #  --stats=false \
 #  --show-output=true \
+#  --python-sampling=true \
 #  --trace=cuda,nvtx,cublas,cudnn \
 #
 rm -f /tmp/graph*.log.txt
 HYDRA_FULL_ERROR=1 \
 THUNDER_ANNOTATE_TRACES=1 \
 NEMO_THUNDER_NEVA=dynamo \
+nsys profile \
+  --force-overwrite=true \
+  --output=${profile} \
+  --opengl-gpu-workload=false \
+  --stats=false \
+  --show-output=true \
+  --python-sampling=true \
+  --trace=cuda,nvtx,cublas,cudnn \
 python3 \
   ./examples/multimodal/multimodal_llm/neva/neva_pretrain.py \
     trainer.precision=bf16-mixed \
