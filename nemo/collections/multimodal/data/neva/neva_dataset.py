@@ -318,6 +318,7 @@ def preprocess_llama_2(
     - Dict: A dictionary containing tokenized and labeled data suitable for the LLaMA 2 model.
       This includes tokens, labels, and any special processing as defined in the configuration.
     """
+    torch.cuda.nvtx.range_push("neva preprocess_llama_2")
     conv = conversation_lib.conv_llava_llama_2.copy()
     roles = {"human": conv.roles[0], "gpt": conv.roles[1]}
 
@@ -386,10 +387,12 @@ def preprocess_llama_2(
         labels = torch.roll(labels, shifts=-1, dims=-1)
         labels[:, -1] = IGNORE_INDEX
 
-    return dict(
+    rv = dict(
         tokens=tokens,
         labels=labels,
     )
+    torch.cuda.nvtx.range_pop()
+    return rv
 
 
 def preprocess_v1(
