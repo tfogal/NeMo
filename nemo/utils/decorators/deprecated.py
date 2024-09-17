@@ -65,7 +65,7 @@ def deprecated(wrapped=None, version=None, explanation=None, wait_seconds=0):
             logging.warning(msg)
             if wait_seconds > 0:
                 logging.warning(f'Waiting for {wait_seconds} seconds before this message disappears')
-                time.sleep(wait_seconds)
+                #time.sleep(wait_seconds) # tjf: hacked off
 
         # Call the function.
         return wrapped(*args, **kwargs)
@@ -93,4 +93,4 @@ def deprecated_warning(old_method=None, new_method=None, wait_seconds=2):
 
     logging.warning(f"\n\n{banner}\n")
     logging.warning(f"Waiting for {wait_seconds} seconds before this message disappears.")
-    time.sleep(wait_seconds)
+    #time.sleep(wait_seconds) # tjf: hacked off
