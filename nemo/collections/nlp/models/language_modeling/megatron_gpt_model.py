@@ -1349,6 +1349,7 @@ class MegatronGPTModel(MegatronBaseModel, TextGeneration):
         from the dataloader to produce a list of microbatches.
         The list of microbatches is then piped through the pipeline using megatron-core fwd/bwd functions.
         """
+        torch.cuda.nvtx.range_push("nemo validation")
         mode = 'test' if self.trainer.testing else 'val'
         # Initialize userbuffer communicators.
         if self.initialize_ub:
@@ -1387,6 +1388,7 @@ class MegatronGPTModel(MegatronBaseModel, TextGeneration):
             else:
                 self.test_step_outputs.append(loss)
 
+        torch.cuda.nvtx.range_pop()
         return loss
 
     def on_validation_epoch_end(self):
