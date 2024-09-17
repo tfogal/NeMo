@@ -1267,6 +1267,8 @@ class MegatronBaseModel(NLPModel):
             self.megatron_timers(name).stop()
 
     def optimizer_step(self, *args, **kwargs):
+        torch.cuda.nvtx.range_push("MegatronBaseModel")
         self.megatron_timer_start('optimizer', log_level=1)
         super().optimizer_step(*args, **kwargs)
         self.megatron_timer_stop('optimizer')
+        torch.cuda.nvtx.range_pop()
