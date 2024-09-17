@@ -798,6 +798,7 @@ class TransformerLanguageModel(MegatronModule, adapter_mixins.AdapterModuleMixin
         if self.context_parallel:
             enc_seq_length = enc_seq_length * parallel_state.get_context_parallel_world_size()
 
+        torch.cuda.nvtx.range_push("nemo XFrmLLM PosEmb")
         rotary_pos_emb = None
         encoder_self_attention_relative_position_bias = None
         if self.position_embedding_type == 'rope':
@@ -820,6 +821,7 @@ class TransformerLanguageModel(MegatronModule, adapter_mixins.AdapterModuleMixin
                 encoder_self_attention_relative_position_bias = self.get_position_embedding_on_this_context_parallel_rank(
                     encoder_self_attention_relative_position_bias, 2
                 )
+        torch.cuda.nvtx.range_pop()
 
         # encoder.
         if enc_hidden_states is None:
