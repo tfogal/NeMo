@@ -843,9 +843,11 @@ class TransformerLanguageModel(MegatronModule, adapter_mixins.AdapterModuleMixin
             encoder_output = enc_hidden_states.to(encoder_input.dtype)
         torch.cuda.nvtx.range_pop()
 
+        torch.cuda.nvtx.range_push("nemo XFrmLLM PostProc")
         if self.post_process:
             if self.add_pooler:
                 pooled_output = self.pooler(encoder_output, pooling_sequence_index)
+        torch.cuda.nvtx.range_pop()
 
         # output_enc_hidden_only refers to when we just need the encoder's
         # output. For example, it is helpful to compute
