@@ -823,6 +823,7 @@ class TransformerLanguageModel(MegatronModule, adapter_mixins.AdapterModuleMixin
                 )
         torch.cuda.nvtx.range_pop()
 
+        torch.cuda.nvtx.range_push("nemo XFrmLLM Encoder")
         # encoder.
         if enc_hidden_states is None:
             encoder_output = self.encoder(
@@ -840,6 +841,7 @@ class TransformerLanguageModel(MegatronModule, adapter_mixins.AdapterModuleMixin
             )
         else:
             encoder_output = enc_hidden_states.to(encoder_input.dtype)
+        torch.cuda.nvtx.range_pop()
 
         if self.post_process:
             if self.add_pooler:
