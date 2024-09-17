@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import os
+import typing
 
 import torch
 from omegaconf.omegaconf import OmegaConf
@@ -26,6 +26,7 @@ from nemo.utils import logging
 from nemo.utils.callbacks import CUDAGraphCallback
 from nemo.utils.exp_manager import exp_manager
 from nemo.lightning.base import teardown
+import thunder
 
 
 class MegatronStableDiffusionTrainerBuilder(MegatronTrainerBuilder):
@@ -49,6 +50,59 @@ class MegatronStableDiffusionTrainerBuilder(MegatronTrainerBuilder):
                 gradient_as_bucket_view=self.cfg.model.gradient_as_bucket_view,
                 find_unused_parameters=False,
             )
+
+# See https://github.com/pytorch/pytorch/issues/104674
+torch._dynamo.config.optimize_ddp = False
+# Workaround an autograd issue.
+torch._dynamo.config.suppress_errors = True
+
+# These are meant to match the 'target' property of torch.fx.Nodes. For the
+# most part the targets are functions and methods, but they are occasionally
+# torch types.
+unsupported: set[typing.Any] = set([
+  # See https://github.com/Lightning-AI/lightning-thunder/issues/824
+  torch.ops._enter_autocast,
+  torch.ops._exit_autocast,
+  # This type is used for e.g. all_reduce in the torch graph. We don't support
+  # capturing those in thunder, and probably won't for some time.
+  torch._ops.OpOverloadPacket,
+])
+
+def thunder_supported(gm: torch.fx.GraphModule) -> bool:
+  """Returns true if thunder supports the graph."""
+  for node in gm.graph.nodes:
+    if node.op == "call_function" and (node.target in unsupported \
+       or type(node.target) in unsupported):
+      return False
+  return True
+def nvtx_callable(c: typing.Callable, iter: int, args):
+  torch.cuda.nvtx.range_push(f"th iter {iter}")
+  c(args)
+  torch.cuda.nvtx.range_pop()
+
+num_graphs = 0
+thunder_graphs = 0
+def thunder_backend(gm: torch.fx.GraphModule, args):
+  gm.real_recompile()
+  global num_graphs
+  global thunder_graphs
+  num_graphs = num_graphs + 1
+  if thunder_supported(gm):
+    thunder_graphs = thunder_graphs + 1
+    try:
+      fqn = thunder.jit(gm)
+      # we should probably exec fqn() here, to force compilation. that'll also
+      # force us to recognize any errors, which will properly be caught by the
+      # exception clause and cause us to skip back to eager mode.
+      from functools import partial
+      return partial(nvtx_callable(fqn, thunder_graphs, args))
+      #return fqn
+    except Exception as e:
+      print(f"broke: {e}")
+      print(f"because of input: {gm.graph}")
+  else:
+      print(f"Thunder reports graph is not supported, so skipping.")
+  return gm
 
 
 @hydra_runner(config_path='conf', config_name='sd_train')
@@ -108,6 +162,8 @@ def main(cfg) -> None:
         else:
             logging.info(f"Running full finetuning since no peft scheme is given.\n{model.summarize()}")
 
+    model.model = torch.compile(backend=thunder_backend,
+                                dynamic=False)(model.model)
     try:
         trainer.fit(model)
     finally:
