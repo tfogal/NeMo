@@ -744,6 +744,7 @@ class MegatronNevaModel(MultimodalAdapterModelMixin, MegatronGPTModel):
         torch.cuda.nvtx.range_push("mneva training_step")
         result = MegatronGPTModel.training_step(self, dataloader_iter)
         torch.cuda.nvtx.range_pop()
+        return result
 
     def get_forward_output_and_loss_func(self, validation_step=False, tuning=False):
         def loss_func(output_tensor, loss_mask):
