@@ -373,7 +373,7 @@ def graph_is_empty(warns) -> bool:
 def use_cuda_graph(graph_id: int) -> bool:
   """whether or not the graph should use cuda graphs"""
   #return graph_id < 35 or graph_id > 45
-  return graph_id != 37
+  return graph_id == 37
 
 def thunder_graph_backend(gm: torch.fx.GraphModule, args: list[torch.Tensor], **kwargs):
   gm.real_recompile()
