@@ -386,7 +386,21 @@ def graph_is_empty(warns) -> bool:
 def use_cuda_graph(graph_id: int) -> bool:
   """whether or not the graph should use cuda graphs"""
   #return graph_id < 35 or graph_id > 45
-  return graph_id == 37
+  #return 35 <= graph_id and graph_id <= 37 # works
+  #return 30 <= graph_id and graph_id <= 37 # works
+  #return -1 <= graph_id and graph_id <= 37 # works
+  #return -1 <= graph_id and graph_id <= 65 # hangs
+  #return -1 <= graph_id and graph_id <= 40 # works
+  #return -1 <= graph_id and graph_id <= 55 # hangs
+  #return -1 <= graph_id and graph_id <= 47 # hangs
+  #return -1 <= graph_id and graph_id <= 42 # works
+  #return -1 <= graph_id and graph_id <= 44 # works
+  # RuntimeError: "one of the variables needed for gradient computation has
+  # been modified by an inplace operation"
+  #return -1 <= graph_id and graph_id <= 46 # RuntimeError
+  #return -1 <= graph_id and graph_id <= 44 # RuntimeError
+  #return -1 <= graph_id and graph_id <= 43 # RuntimeError
+  return -1 <= graph_id and graph_id <= 42
 
 def thunder_graph_backend(gm: torch.fx.GraphModule, args: list[torch.Tensor], **kwargs):
   gm.real_recompile()
