@@ -494,33 +494,6 @@ def thunder_graph_backend2(gm: torch.fx.GraphModule, args: list[torch.Tensor], *
     return gm
   return gm
 
-def thunder_graph_backend3(gm: torch.fx.GraphModule, args: list[torch.Tensor], **kwargs):
-  gm.real_recompile()
-  global num_graphs
-  num_graphs = num_graphs + 1
-  try:
-    if thunder_supported(gm):
-      global thunder_graphs
-      fqn = thunder.jit(gm)
-      torch.cuda.nvtx.range_push(f"ThunderFX {thunder_graphs}")
-      fqn(*args) # run once outside the graph to make the allocator happy?
-      torch.cuda.nvtx.range_pop()
-
-      if use_cuda_graph(copy.deepcopy(thunder_graphs)):
-        graph_id = copy.deepcopy(thunder_graphs)
-        reproducer(gm, args, graph_id)
-      thunder_graphs = thunder_graphs + 1
-      return fqn
-    else:
-      print(f"Thunder reports graph is not supported, so skipping.")
-  except Exception as e:
-    import traceback
-    print(f"broke: {e}")
-    traceback.print_exception(e)
-    print(f"because of input: {gm.graph}")
-    return gm
-  return gm
-
 # use thunder's transform
 def thunder_graph_backend4(gm: torch.fx.GraphModule, args: list[torch.Tensor], **kwargs):
   gm.real_recompile()
