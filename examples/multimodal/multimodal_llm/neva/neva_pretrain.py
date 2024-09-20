@@ -454,7 +454,7 @@ def thunder_graph_backend2(gm: torch.fx.GraphModule, args: list[torch.Tensor], *
     if thunder_supported(gm):
       global thunder_graphs
       fqn = thunder.jit(gm)
-      torch.cuda.nvtx.range_push(f"ThunderFX {thunder_graphs}")
+      torch.cuda.nvtx.range_push(f"ThunderFX {thunder_graphs} compile")
       fqn(*args) # run once outside the graph to make the allocator happy?
       torch.cuda.nvtx.range_pop()
 
