@@ -594,6 +594,10 @@ def main(cfg) -> None:
     elif use_thunder is not None:
         raise ValueError(f"unknown NEMO_THUNDER_NEVA setting: {use_thunder}")
 
+    # get off the default stream to workaround issue with graphs and the main
+    # stream.
+    s1 = torch.cuda.Stream()
+    torch.cuda.set_stream(s1)
     try:
         #with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA]) as prof:
         trainer.fit(model)
