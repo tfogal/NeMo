@@ -475,6 +475,7 @@ def thunder_graph_backend2(gm: torch.fx.GraphModule, args: list[torch.Tensor], *
         num_warmup_iters=1,
         allow_unused_input=True
       )
+      wrapper(*args) # force any allocations etc. for graphs
       graph_id = copy.deepcopy(thunder_graphs)
       def wrapper_of_wrapper(*args):
         torch.cuda.nvtx.range_push(f"TFX run {graph_id}")
