@@ -584,8 +584,8 @@ def main(cfg) -> None:
         # The dynamic=False is critical because we end up with SymInts
         # in the trace otherwise, which we cannot yet handle.
         #model.model = torch.compile(backend=thunder_backend, dynamic=False)(model.model)
-        model.model = torch.compile(backend=logging_thunder_backend, dynamic=False)(model.model)
-        #model.model = torch.compile(model.model, backend=thunder_graph_backend2, dynamic=False, mode="default")
+        #model.model = torch.compile(backend=logging_thunder_backend, dynamic=False)(model.model)
+        model.model = torch.compile(model.model, backend=thunder_graph_backend2, dynamic=False, mode="default")
     elif use_thunder is not None and use_thunder.strip() == "examine":
         model.model = torch.compile(backend=thunder_examine)(model.model)
     elif use_thunder is not None and use_thunder.strip() == "tc":
