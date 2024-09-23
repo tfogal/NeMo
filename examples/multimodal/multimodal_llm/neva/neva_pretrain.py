@@ -36,6 +36,7 @@ import torch._inductor.compile_fx
 from torch.profiler import profile, ProfilerActivity
 from torch.nn.modules.module import _addindent
 from thunder.examine import examine
+from thunder.dev_utils.nvtx_profile_transform import NvtxProfileTransform
 # See https://github.com/pytorch/pytorch/issues/104674
 torch._dynamo.config.optimize_ddp = False
 # Workaround an autograd issue.
@@ -254,7 +255,7 @@ def logging_thunder_backend(gm: torch.fx.GraphModule, args):
   try:
     if thunder_supported(gm):
       global thunder_graphs
-      fqn = thunder.jit(gm)
+      fqn = thunder.jit(gm, transforms=[NvtxProfileTransform()])
       fqn(*args)
       fname = f"/tmp/graph-{thunder_graphs}.log.txt"
       with open(fname, "w") as f:
@@ -331,7 +332,7 @@ def thunder_backend(gm: torch.fx.GraphModule, args: list[torch.Tensor], **kwargs
     if thunder_supported(gm):
       global thunder_graphs
       torch.cuda.nvtx.range_push("forced compilation")
-      fqn = thunder.jit(gm)
+      fqn = thunder.jit(gm, transforms=[NvtxProfileTransform()])
       fqn(*args) # force compilation to happen now
       torch.cuda.nvtx.range_pop()
       thunder_graphs = thunder_graphs + 1
@@ -353,10 +354,7 @@ def thunder_graph_backend5(gm: torch.fx.GraphModule, args: list[torch.Tensor], *
       global thunder_graphs
       #with torch.profiler.record_function("thunder's jit"):
       torch.cuda.nvtx.range_push("thunder.jit'd function")
-      fqn = thunder.jit(gm)
-      #fqn = thunder.jit(gm, executors=_execs)
-      #g = torch.cuda.CUDAGraph()
-      #with torch.cuda.graph(g):
+      fqn = thunder.jit(gm, transforms=[NvtxProfileTransform()])
       fqn = torch._inductor.compile_fx.cudagraphify(fqn,
         device_index=0,
         stack_traces=[],
@@ -410,7 +408,7 @@ def thunder_graph_backend(gm: torch.fx.GraphModule, args: list[torch.Tensor], **
     if thunder_supported(gm):
       global thunder_graphs
       #with torch.profiler.record_function("thunder's jit"):
-      fqn = thunder.jit(gm)
+      fqn = thunder.jit(gm, transforms=[NvtxProfileTransform()])
       g = torch.cuda.CUDAGraph()
       fqn(*args) # run once outside the graph to make the allocator happy?
       if not use_cuda_graph(copy.deepcopy(thunder_graphs)):
@@ -453,7 +451,7 @@ def thunder_graph_backend2(gm: torch.fx.GraphModule, args: list[torch.Tensor], *
   try:
     if thunder_supported(gm):
       global thunder_graphs
-      fqn = thunder.jit(gm)
+      fqn = thunder.jit(gm, transforms=[NvtxProfileTransform()])
       torch.cuda.nvtx.range_push(f"ThunderFX {thunder_graphs} compile")
       fqn(*args) # run once outside the graph to make the allocator happy?
       torch.cuda.nvtx.range_pop()
@@ -505,9 +503,10 @@ def thunder_graph_backend4(gm: torch.fx.GraphModule, args: list[torch.Tensor], *
       global thunder_graphs
       if use_cuda_graph(thunder_graphs):
         xform = thunder.transforms.cudagraph.CUDAGraphTransform()
-        fqn = thunder.jit(gm, transforms=[xform])
+        xforms = [xform, NvtxProfileTransform()]
+        fqn = thunder.jit(gm, transforms=xforms)
       else:
-        fqn = thunder.jit(gm)
+        fqn = thunder.jit(gm, transforms=[NvtxProfileTransform()])
       torch.cuda.nvtx.range_push(f"ThunderFX {thunder_graphs} warmup")
       fqn(*args) # run once to force compilation
       torch.cuda.nvtx.range_pop()
