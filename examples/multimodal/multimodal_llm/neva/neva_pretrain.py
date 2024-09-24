@@ -579,6 +579,8 @@ def main(cfg) -> None:
         model.model = thunder.jit(model.model)
     elif use_thunder is not None and use_thunder.strip() == "inductor":
         model.model = torch.compile(model.model, mode="reduce-overhead")
+    elif use_thunder is not None and use_thunder.strip() == "logging":
+        model.model = torch.compile(backend=logging_thunder_backend, dynamic=False)(model.model)
     elif use_thunder is not None and use_thunder.strip() == "dynamo":
         # The dynamic=False is critical because we end up with SymInts
         # in the trace otherwise, which we cannot yet handle.
