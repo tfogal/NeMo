@@ -24,7 +24,7 @@ python3 \
   ./examples/multimodal/multimodal_llm/neva/neva_pretrain.py \
     trainer.precision=bf16-mixed \
     model.megatron_amp_O2=True \
-    model.mcore_gpt=True \
+    model.mcore_gpt=False \
     trainer.num_nodes=1 \
     trainer.devices=1 \
     trainer.val_check_interval=10 \
